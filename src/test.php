@@ -1,7 +1,8 @@
 <?php
 
 $confActualMtime = filemtime('InitialiseSettings.php');
-
+$confGracePeriod = intval( ini_get( 'opcache.revalidate_freq' ) ) + 1;
+$minFileRefreshTime = $confActualMtime + $confGracePeriod;
 $cache = '/tmp/cache.json';
 $globals = json_decode(@file_get_contents($cache), true);
 
@@ -17,8 +18,9 @@ if ( ! $globals ) {
 		"timestamp" => $confActualMtime,
 		"foo" => $foo,
 	];
-
-	file_put_contents($cache, json_encode($globals));
+	if ( $minFileRefreshTime < time() ) {
+		file_put_contents($cache, json_encode($globals));
+	}
 }
 
 echo $globals['foo'];
